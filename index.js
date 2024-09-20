@@ -1,173 +1,145 @@
-const fs  = require('fs');
-const crypto = require('crypto');
-const inquirer = require('inquirer');
-const { select } = require('@inquirer/prompts');
-const { type } = require('os');
+
+
+const { select, input, checkbox } = require('@inquirer/prompts');
+const fs = require('fs').promises
+
+let mensagem = ' Bem Vindo ao sistema de gerenciamento de Senhas'
 
 // Iniciando a aplicação
 
-/*const start = async () => {
 
-    
+const mainMenu = async () => {
 
     while (true) {
         const opcao = await select({
-            message: 'Menu de Gerenciameno de Senhas >>',
+            message: 'Menu principal >>>',
 
             choices: [{
                 name: 'Gerar uma nova senha',
-                value: 'Senha'
+                value: 'GerarSenha'
+
             },
             {
-                name: 'Visualizar senhas',
-                value: 'Visualizar'  
+                name: 'Visualizar Senha',
+                value: 'visualizarSenha'
             },
+
             {
                 name: 'Deletar senha',
-                value: 'Deletar'
+                value: 'DeletarSenha'
             },
+
             {
                 name: 'Sair',
                 value: 'Sair'
             },
-        ],
+            ],
+
         })
 
-        switch (opcao){
-
-            case "Gerar nova senha":
-                console.log("Nova senha");
+        switch (opcao) {
+            case 'Gerar uma nova senha':
+                await gerarSenhaMenu();
+                break;
+            case 'Visualizar Senha':
+                await visualizarSenhaMenu();
                 break
-
-            case "Visualizar Senhas":
-                break
-
-            case "Deletar senha":
-                break
-            case "Sair":
-                console.log("Ate a proxima!")
-                return    
+            case 'Deletar Senha':
+                await deletarSenhaMenu();
+                break;
+            case 'Sair':
+                console.log('Ate a proxima!');
+                process.exit();
         }
+
     }
 }
-start()*/
+    //Submenu parar gerar uma nova senha
 
+    const gerarSenhaMenu = async () => {
+        const { length, name, pin } = await inquirer.prompt([
 
-// Função principal do Mneu inicial
+            {
+                type: 'input',
+                name: 'length',
+                mesage: 'Quantidade de caracteres da senha: '
+            },
 
-async function mainMenu(){
-    const choices =  await inquirer.prompt([
-        {
-            type: 'list',
-            name:'action',
-            mensage: '## Sistema de gerenciamento de Senhas Aleatórias via terminal ##\nEscolha uma ação:',  
-            choices: ['Gerar uma nova senha', 'Visualizar senha', 'Deletar senha', 'Sair']
-        }
-    ]);
+            {
+                type: 'input',
+                name: 'name',
+                message: 'Nome da Senha'
+            },
 
-    switch (choices.action){
-        case 'Gerar uma nova senha':
-            await gerarSenhaMenu();
-            break;
-        case 'Visualizar Senha':
-            await visualizarSenhaMenu();
-            break
-        case 'Deletar Senha':
-            await deletarSenhaMenu();
-            break;
-        case 'Sair':
-            console.log('Ate a proxima!');
-            process.exit();    
+            {
+                type: 'input',
+                name: 'pin',
+                message: 'Faça um pin de acesso á sua senha: '
+            }
+
+        ]);
+
+        const senha = gerarSenhaAleatoria(parseInt(length));
+        console.log("Nova senha gerada para ${name}: ${senha}");
+
+        // arquivo para salvar a senha
+
+        await mainMenu(); // Retornar ao menu principal
     }
 
-}
 
-//Submenu parar gerar uma nova senha
+    // Gerando uma senha aleatória:
 
-async function gerarSenhaMenu(){
-    const {length, name, pin} =  await inquirer.prompt([
-        
-        {
-            type: 'input',
-            name: 'length',
-            mesage: 'Quantidade de caracteres da senha: '
-        },
-
-        {
-            type: 'input',
-            name: 'name',
-            message: 'Nome da Senha'
-        },
-
-        {
-            type: 'input',
-            name: 'pin',
-            message: 'Faça um pin de acesso á sua senha: '
+    function gerarSenhaAleatoria(length) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+        let senha = '';
+        for (let i = 0; i < length; i++) {
+            senha += chars.charAt(Math.floor(Math.random() * chars.length));
         }
 
-    ]);
-
-    const senha = gerarSenhaAleatoria(parseInt(length));
-    console.log("Nova senha gerada para ${name}: ${senha}");
-    
-    // arquivo para salvar a senha
-
-    await mainMenu(); // Retornar ao menu principal
-}
-
-
-// Gerando uma senha aleatória:
-
-function gerarSenhaAleatoria(length){
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-    let senha = '';
-    for (let i = 0; i < length; i++){
-        senha += chars.charAt(Math.floor(Math.random() * chars.length));
+        return senha;
     }
 
-    return senha;
-}
+    // SubMenu para visualizar as senhas
 
-// SubMenu para visualizar as senhas
+    const visualizarSenhaMenu = async () => {
+        const { name, pin } = await inquireria.prompt([
+            {
+                type: 'input',
+                name: 'nome',
+                message: 'Digite o nome da senha:'
+            },
 
-async function visualizarSenhaMenu(){
-    const {name, pin} = await inquireria.prompt([
-        {
-            type: 'input',
-            name: 'nome',
-            message: 'Digite o nome da senha:'
-        },
+            {
+                type: 'input',
+                name: 'pin',
+                message: 'Digite o pin de acesso á senha:'
 
-        {
-            type: 'input',
-            name: 'pin',
-            message: 'Digite o pin de acesso á senha:'
+            }
+        ]);
 
-        }
-    ]);
+        // Recuperar a senha com base no pin fornecido
 
-    // Recuperar a senha com base no pin fornecido
+        console.log('Visualizar a senha para ${name}...');
 
-    console.log('Visualizar a senha para ${name}...');
+        await mainMenu() // Retornar ao menu principal
+    }
 
-    await mainMenu() // Retornar ao menu principal
-}
+    // Submenu para deletar uma senha
 
-// Submenu para deletar uma senha
+    const deletarSenhaMenu = async () => {
+        const { name, pin } = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'name',
+                message: 'Digite o nome da senha a ser deletada:'
+            },
 
-async function deletarSenhaMenu(){
-    const {name, pin} = await inquirer.prompt([
-        { 
-            type: 'input',
-            name: 'name',
-            message: 'Digite o nome da senha a ser deletada:'
-        },
-        
-        {
-            type: 'input',
-            name: 'pin',
-            message: 'Digite o pin de acesso á senha:'
-        }    
+            {
+                type: 'input',
+                name: 'pin',
+                message: 'Digite o pin de acesso á senha:'
+            }
         ]);
 
         //Deletar a senha se o pin estiver correto
@@ -175,6 +147,6 @@ async function deletarSenhaMenu(){
         console.log('Senha para ${nome} deletada com sucesso!');
 
         await mainMenu(); // Retornar ao Menu inicial
-}
+    }
 
-mainMenu(); 
+    mainMenu(); 
