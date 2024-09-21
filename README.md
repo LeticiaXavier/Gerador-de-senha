@@ -16,3 +16,19 @@
     - pin de Acesso a senha
     - Nome da senha
 
+## Criando a senha ##
+- Gerar uma nova senha
+- vai pedir ao usuário a quantidade de caracteres
+- Nome para a senha
+- Criar o Pin de Acesso a senha (usuário que cria)
+- Exibir senha
+
+## Visualizar senha ##
+- Vai pedir o Nome da senha
+- Pin de Acesso a senha
+- Mostar senha
+
+## Deletar senhas ##
+- Vai pedir o nome da senha
+- Vai pedir o Pin de acesso
+- Senha deletada
