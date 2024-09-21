@@ -32,3 +32,5 @@
 - Vai pedir o nome da senha
 - Vai pedir o Pin de acesso
 - Senha deletada
+
+![Demostração do Programa](./senha.gif)
