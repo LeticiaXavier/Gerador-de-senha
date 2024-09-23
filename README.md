@@ -40,4 +40,4 @@
 - Agora aparece o nome da senha em Vizualizar e Deletar
 - Sera pedido o pin para o usuário na hora de vizualizar a senha e na hora de deletar
 
-* Corrigindo o erro em que na hora de por o tamanho da senha poderia por palavras, agora so aceita números inteiros.
+*Foi corregido o erro em que na hora de por o tamanho da senha poderia por palavras, agora so aceita números inteiros.
