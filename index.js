@@ -1,7 +1,7 @@
-const { select, input } = require('@inquirer/prompts');
+const { select, input, checkbox } = require('@inquirer/prompts');
 const fs = require('fs').promises;
 let mensagem = 'Bem Vindo ao sistema de gerenciamento de Senhas';
-let senhas = [];
+let senhas = []; // Aqui é "senhas" no plural
 
 // Gerando uma senha aleatória
 function gerarSenhaAleatoria(length) {
@@ -25,8 +25,7 @@ const carregarSenhas = async () => {
 
 // Função para salvar senhas no arquivo
 const salvarSenhas = async () => {
-    await fs.writeFile("senhas.json", JSON.stringify(senhas, null, 2));
-    
+    await fs.writeFile("senhas.json", JSON.stringify(senhas, null, 2)); // Usa "senhas" no plural
 };
 
 // Função para esperar a entrada do usuário
@@ -34,37 +33,39 @@ const esperarEntrada = async () => {
     await input({ message: 'Pressione Enter para continuar...' });
 };
 
-// Função para visualizar uma senha
+// Função para visualizar senhas
 const visualizarSenhaMenu = async () => {
-    if (senhas.length == 0) {
-        console.log('Não existem senhas armazenadas.');
-        await esperarEntrada(); // Pausa antes de voltar ao menu
+    // Verifica se há senhas salvas
+    if (senhas.length === 0) {
+        console.log('Não existem senhas salvas.');
+        await esperarEntrada();
         return;
     }
 
-    const name = await input({
-        message: 'Digite o nome da senha que deseja visualizar:',
+    // Lista os nomes das senhas com checkboxes
+    const escolhas = await checkbox({
+        message: 'Escolha uma ou mais senhas para visualizar:',
+        choices: senhas.map((item, index) => ({
+            name: item.name,  // Exibe o nome da senha
+            value: index      // Usa o índice para referenciar a senha
+        })),
     });
 
-    const pin = await input({
-        message: 'Digite o PIN de acesso à senha:',
-    });
+    // Verifica e exibe as senhas selecionadas, solicitando o PIN
+    for (const escolha of escolhas) {
+        const pinInput = await input({
+            message: `Digite o PIN para acessar a senha de ${senhas[escolha].name}:`,
+        });
 
-    const senhaEncontrada = senhas.find(item => item.name === name);
-
-    if (!senhaEncontrada) {
-        console.log('Senha não encontrada.');
-        await esperarEntrada(); // Pausa antes de voltar ao menu
-        return;
+        // Verifica se o PIN está correto
+        const senhaEscolhida = senhas[escolha];
+        if (senhaEscolhida.pin === pinInput) {
+            console.log(`Senha para ${senhaEscolhida.name}: ${senhaEscolhida.senha}`);
+        } else {
+            console.log(`PIN incorreto! Não foi possível acessar a senha de ${senhaEscolhida.name}.`);
+        }
     }
 
-    if (senhaEncontrada.pin !== pin) {
-        console.log('PIN incorreto.');
-        await esperarEntrada(); // Pausa antes de voltar ao menu
-        return;
-    }
-
-    console.log(`A senha para ${name} é: ${senhaEncontrada.senha}`);
     await esperarEntrada(); // Pausa antes de voltar ao menu
 };
 
@@ -75,9 +76,9 @@ const gerarSenhaMenu = async () => {
         validate: (value) =>{
             const parsed = parseInt(value, 10);
             if(isNaN(parsed) || parsed <= 0){
-                return 'insira um número válido.';
+                return 'Insira um número válido.';
             }
-            return true
+            return true;
         },
     });
 
@@ -99,24 +100,37 @@ const gerarSenhaMenu = async () => {
 
 // Submenu para deletar uma senha
 const deletarSenhaMenu = async () => {
-    const name = await input({
-        message: 'Digite o nome da senha a ser deletada:',
-    });
-
-    const pin = await input({
-        message: 'Digite o PIN de acesso à senha:',
-    });
-
-    const index = senhas.findIndex(item => item.name === name && item.pin === pin);
-
-    if (index === -1) {
-        console.log('Senha ou PIN incorretos.');
-    } else {
-        senhas.splice(index, 1);
-        console.log(`Senha para ${name} deletada com sucesso!`);
-        await salvarSenhas(); // Salvar a alteração no arquivo
+    if (senhas.length === 0) {
+        console.log('Não existem senhas salvas.');
+        await esperarEntrada();
+        return;
     }
 
+    // Lista as senhas com checkboxes para selecionar uma ou mais para deletar
+    const escolhas = await checkbox({
+        message: 'Escolha uma ou mais senhas para deletar:',
+        choices: senhas.map((item, index) => ({
+            name: item.name,  // Exibe o nome da senha
+            value: index      // Usa o índice para referenciar a senha
+        })),
+    });
+
+    // Para cada senha selecionada, pede o PIN para confirmar a deleção
+    for (const escolha of escolhas) {
+        const pinInput = await input({
+            message: `Digite o PIN para deletar a senha de ${senhas[escolha].name}:`,
+        });
+
+        const senhaEscolhida = senhas[escolha];
+        if (senhaEscolhida.pin === pinInput) {
+            console.log(`Senha para ${senhaEscolhida.name} deletada com sucesso!`);
+            senhas.splice(escolha, 1); // Remove a senha do array
+        } else {
+            console.log(`PIN incorreto! Não foi possível deletar a senha de ${senhaEscolhida.name}.`);
+        }
+    }
+
+    await salvarSenhas(); // Salvar as alterações no arquivo
     await esperarEntrada(); // Pausa antes de voltar ao menu
 };
 
